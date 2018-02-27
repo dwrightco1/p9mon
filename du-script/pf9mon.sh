@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cachet_ip="172.16.7.36"
+cachet_ip="38.140.51.154:81"
 cachet_token="fwCWWIlR88uOSkSdiArL"
 serviceDir=/etc/init.d
 apiMap=instance-map.dat
@@ -8,19 +8,6 @@ apiMap=instance-map.dat
 usage() {
   echo "usage: $0 [<serviceName>|all]"
   exit 1
-}
-
-update_cachet() {
-  if [ $# -ne 2 ]; then return 0; fi
-  component_name=${1}
-  component_code=${2}
-
-  if [ -r ${apiMap} ]; then
-    id=$(grep ^${component_name} ${apiMap} | cut -d \| -f2)
-    #curl -i -H "X-Cachet-Token: ${cachet_token}" -H "Content-Type: application/json" \
-    #     -X PUT -d '{"description":"Component has failed","status":4}' http://${cachet_ip}/api/v1/components/${id}
-    echo "curl -i -H \"X-Cachet-Token: ${cachet_token}\" -H \"Content-Type: application/json\" -X PUT -d '{\"description\":\"Component has failed\",\"status\":${component_code}}' http://${cachet_ip}/api/v1/components/${id}"
-  fi
 }
 
 # validate parameters
@@ -49,14 +36,21 @@ for service in ${serviceDir}/*; do
     case ${component_status} in
     0)
       component_code=1
+      component_desc="Component is operating normally"
       ;;
     *)
       component_code=4
+      component_desc="Component has failed"
       ;;
     esac
 
     # update component in dashboard
-    update_cachet ${serviceName} ${component_code}
+    if [ -r ${apiMap} ]; then
+      id=$(grep "^${serviceName}|" ${apiMap} | cut -d \| -f2)
+      echo "--> setting dashboard.id=${id} to ${component_code} (${component_desc})"
+      curl -i -H "X-Cachet-Token: ${cachet_token}" -H "Content-Type: application/json" -X PUT -d "{ 'description':'${component_desc}', 'status':'${component_code}' }" http://${cachet_ip}/api/v1/components/${id} > /dev/null 2>&1
+    fi
+
   fi
 
 done
