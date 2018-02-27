@@ -42,7 +42,7 @@ def cachet_initGroup(hostname, port, token, configLine):
     url = "http://{}:{}/api/v1/components/groups".format(hostname,port)
     data = {'name': configLine[0], 'description': configLine[1], 'status': 1}
     headers = {'Content-Type': content_type_header, 'X-Cachet-Token': token}
-    print ("Posting %s" % data)
+    print("Posting %s" % data)
     response, content = http.request( url, 'POST', json.dumps(data), headers=headers)
     mydict = json.loads(content)
     return(mydict["data"]["id"])
@@ -59,7 +59,7 @@ def cachet_initInstance(hostname, port, token, id, configLine):
     url = "http://{}:{}/api/v1/components".format(hostname,port)
     data = {'name': configLine[0], 'description': configLine[1], 'status': 1, 'group_id': id}
     headers = {'Content-Type': content_type_header, 'X-Cachet-Token': token}
-    print ("Posting %s" % data)
+    print("Posting %s" % data)
     response, content = http.request( url, 'POST', json.dumps(data), headers=headers)
 
 # main
