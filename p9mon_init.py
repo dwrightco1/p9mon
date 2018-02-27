@@ -75,7 +75,6 @@ if __name__ == '__main__':
         abort("Cannot read config file: {}".format(configFile))
 
     # process config file
-    x = 0
     for l in configLines:
         tline = l.split("=")
         if tline[0] == "instanceGroup":
