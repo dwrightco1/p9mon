@@ -4,9 +4,13 @@ Cachet-based montoring script for Platform9 Kubernetes and Openstack Deployment 
 
 ## Sample Config File (for Kubernetes Instance)
 instanceGroup=Autodesk K8 Cluster-1|P9 Kubernetes Instance
+
 instance=kube-apiserver|P9 Kubernetes Platform Component
+
 instance=kube-scheduler|P9 Kubernetes Platform Component
+
 instance=kube-controller|P9 Kubernetes Platform Component
+
 instance=kube-etcd|P9 Kubernetes Platform Component
 
 ## Cachet REST API Usage Notes
