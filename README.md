@@ -2,6 +2,13 @@
 
 Cachet-based montoring script for Platform9 Kubernetes and Openstack Deployment Units.
 
+## Sample Config File (for Kubernetes Instance)
+`instanceGroup=Autodesk K8 Cluster-1|P9 Kubernetes Instance
+instance=kube-apiserver|P9 Kubernetes Platform Component
+instance=kube-scheduler|P9 Kubernetes Platform Component
+instance=kube-controller|P9 Kubernetes Platform Component
+instance=kube-etcd|P9 Kubernetes Platform Component`
+
 ## Cachet REST API Usage Notes
 **1. get all components**
 * curl http://10.238.0.11/api/v1/components | python -m json.tool
