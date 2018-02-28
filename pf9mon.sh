@@ -6,13 +6,22 @@ serviceDir=/etc/init.d
 apiMap=instance-map.dat
 
 usage() {
-  echo "usage: $0 [<serviceName>|all]"
+  echo -e "usage: $0 [<serviceName>|all]\n"
+  exit 1
+}
+
+assert() {
+  if [ $# -eq 1 ]; then echo "ASSERT: ${1}"; fi
   exit 1
 }
 
 # validate parameters
 if [ $# -ne 1 ]; then usage; fi
 filter=${1}
+
+if [ ! -r ${apiMap} ]; then
+  assert "cannot open file: ${apiMap}"
+fi 
 
 # check service status
 for service in ${serviceDir}/*; do
@@ -22,11 +31,11 @@ for service in ${serviceDir}/*; do
   # apply service filter (commandline argument != all)
   if [ "${filter}" != "all" -a "${serviceName}" != "${filter}" ]; then continue; fi
 
-  if [[ ${serviceName} == pf9* || ${serviceName} == openstack* ]]; then
-    # skip disabled services
-    serviceStatus=$(systemctl show ${serviceName} | grep ActiveState | awk -F = '{print $2}')
-    if [ "${serviceStatus}" == "inactive" ]; then continue; fi
+  # skip administratively disabled services
+  service_status=$(grep "^${serviceName}|" ${apiMap} | cut -d \| -f3)
+  if [ "${service_status}" == "disabled" ]; then continue; fi
 
+  if [[ ${serviceName} == pf9* || ${serviceName} == openstack* ]]; then 
     # get service status
     echo "Checking service status: ${serviceName}"
     systemctl status ${serviceName} > /dev/null 2>&1
@@ -37,22 +46,20 @@ for service in ${serviceDir}/*; do
     0)
       component_code=1
       component_desc="Component is operating normally"
+      echo "--> ${component_desc}"
       ;;
     *)
       component_code=4
       component_desc="Component has failed"
+      echo "--> *** ERROR: ${component_desc}"
       ;;
     esac
 
     # update component in dashboard
-    if [ -r ${apiMap} ]; then
-      id=$(grep "^${serviceName}|" ${apiMap} | cut -d \| -f2)
-      echo "--> setting dashboard.id=${id} to ${component_code} (${component_desc})"
-      curl -i -H "X-Cachet-Token: ${cachet_token}" -H "Content-Type: application/json" -X PUT -d "{ 'description':'${component_desc}', 'status':'${component_code}' }" http://${cachet_ip}/api/v1/components/${id} > /dev/null 2>&1
-    fi
-
+    id=$(grep "^${serviceName}|" ${apiMap} | cut -d \| -f2)
+    curl -i -H "X-Cachet-Token: ${cachet_token}" -H "Content-Type: application/json" -X PUT \
+         -d "{\"description\":\"${component_desc}\",\"status\":\"${component_code}\"}" http://${cachet_ip}/api/v1/components/${id} > /dev/null 2>&1
   fi
-
 done
 
 # exit cleanly
